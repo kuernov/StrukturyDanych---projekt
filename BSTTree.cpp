@@ -22,6 +22,9 @@ void BSTTree::remove(int value)
 
 BSTTree::Node* BSTTree::search(int value)
 {
+	//Node* a = search(root, value);
+	//cout << a->value;
+	//return a;
 	return search(root, value);
 }
 
