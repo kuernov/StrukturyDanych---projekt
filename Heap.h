@@ -2,32 +2,33 @@
 
 class Heap {
 private:
-    struct Node {
-        int value;
-        Node* left;
-        Node* right;
-
-        Node(int val) : value(val), left(nullptr), right(nullptr) {}
-    };
-
-    Node* root;
-
-    Node* getParentNode(Node* current);
-    void heapifyUp(Node* current);
-    void heapifyDown(Node* current);
-    void inorderTraversal(Node* node);
-    void preorderTraversal(Node* node);
-    void postorderTraversal(Node* node);
-    Node* removeNode(Node* node, int value); 
-    Node* findMin(Node* node);
-
+    int act_size;
+    int max_size;
+    int* array;
+    int parent(int i);
+    int left(int i);
+    int right(int i);
+    void heapify_up(int i);
+    void heapify_down(int i);
+    void resize();
 
 public:
-    Heap();
+    Heap(int size);
+
+    ~Heap();
+
     void insert(int value);
-    void remove(int value);
-    void inorder();
-    void preorder();
-    void postorder();
+
+    void pop();
+
+    void show();
+
+    bool is_empty();
+
+    int root();
+    
+    int search(int value);
+    int getDepth(int index);
+    int searchHelper(int index, int value);
 };
 

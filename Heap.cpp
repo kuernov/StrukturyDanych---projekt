@@ -1,191 +1,145 @@
 ﻿#include <iostream>
+#include <queue>
+#include <utility>
 #include "Heap.h"
 
 using namespace std;
 
-Heap::Heap() {
-    root = nullptr;
+Heap::Heap(int size) {
+    max_size = size;
+    act_size = 0;
+    array = new int[size];
 }
 
-Heap::Node* Heap::getParentNode(Node* current) {
-    if (current == nullptr || current == root)
-        return nullptr;
-
-    // Przechodzenie kopca od góry do dołu, w lewo i prawo
-    Node* parent = root;
-    while (parent->left != current && parent->right != current) {
-        if (parent->left != nullptr && parent->left != current)
-            parent = parent->left;
-        else
-            parent = parent->right;
-    }
-
-    return parent;
+Heap::~Heap() {
+    delete[] array;
 }
 
-void Heap::heapifyUp(Node* current) {
-    if (current == nullptr || current == root)
-        return;
-
-    Node* parent = getParentNode(current);
-    while (parent != nullptr && current->value > parent->value) {
-        swap(current->value, parent->value);
-        current = parent;
-        parent = getParentNode(current);
-    }
+int Heap::parent(int i) {
+    return (i - 1) / 2;
 }
 
-void Heap::heapifyDown(Node* current) {
-    if (current == nullptr)
-        return;
-
-    Node* maxNode = current;
-    if (current->left != nullptr && current->left->value > maxNode->value)
-        maxNode = current->left;
-
-    if (current->right != nullptr && current->right->value > maxNode->value)
-        maxNode = current->right;
-
-    if (maxNode != current) {
-        swap(current->value, maxNode->value);
-        heapifyDown(maxNode);
-    }
-}
-void Heap::inorderTraversal(Node* node) {
-    if (node != nullptr) {
-        inorderTraversal(node->left);
-        cout << node->value << " ";
-        inorderTraversal(node->right);
-    }
+int Heap::left(int i) {
+    return (2 * i + 1);
 }
 
-void Heap::preorderTraversal(Node* node) {
-    if (node != nullptr) {
-        cout << node->value << " ";
-        preorderTraversal(node->left);
-        preorderTraversal(node->right);
-    }
+int Heap::right(int i) {
+    return (2 * i + 2);
 }
 
-void Heap::postorderTraversal(Node* node) {
-
-    if (node != nullptr) {
-        postorderTraversal(node->left);
-        postorderTraversal(node->right);
-        cout << node->value << " ";
+void Heap::heapify_up(int i) {
+    if (i == 0) return;
+    if (array[i] > array[parent(i)]) {
+        swap(array[i], array[parent(i)]);
     }
+    heapify_up(parent(i));
+}
+
+void Heap::heapify_down(int i) {
+    if (act_size == 0) return;
+    int largest = i;
+    if (left(i) < act_size && array[left(i)] > array[largest]) {
+        largest = left(i);
+    }
+    if (right(i) < act_size && array[right(i)] > array[largest]) {
+        largest = right(i);
+    }
+    if (largest == i) return;
+    swap(array[i], array[largest]);
+    heapify_down(largest);
+}
+
+void Heap::resize() {
+    int* new_array;
+    new_array = new int[max_size * 2];
+    for (int i = 0; i < max_size; i++) {
+        new_array[i] = array[i];
+    }
+    delete[] array;
+    array = new_array;
+    max_size *= 2;
 }
 
 void Heap::insert(int value) {
-
-    Node* newNode = new Node(value);
-
-    if (root == nullptr) {
-        root = newNode;
+    if (act_size == max_size) {
+        resize();
     }
-    else {
-        Node* temp = root;
-        while (temp->left != nullptr && temp->right != nullptr) {
-            // Dodawanie węzłów na koniec kopca
-            if (temp->left != nullptr && temp->right != nullptr)
-                temp = temp->left;
-            else
-                temp = temp->right;
-        }
-
-        if (temp->left == nullptr)
-            temp->left = newNode;
-        else
-            temp->right = newNode;
-    }
-
-    heapifyUp(newNode);
+    array[act_size] = value;
+    heapify_up(act_size);
+    act_size++;
 }
 
-void Heap::remove(int value) {
-    if (root == nullptr)
+void Heap::pop() {
+    if (is_empty()) return;
+    array[0] = array[--act_size];
+    array[act_size] = 0;
+    heapify_down(0);
+}
+
+void Heap::show() {
+    int index = 0;
+    if (index >= act_size) {
+        cout << "heap is empty\n";
         return;
-
-    Node* nodeToRemove = nullptr;
-    Node* temp = root;
-
-    // Przeszukiwanie kopca w głąb, aby znaleźć węzeł do usunięcia
-    while (temp != nullptr) {
-        if (temp->value == value) {
-            nodeToRemove = temp;
+    }
+    cout << "----\n";
+    cout << array[index] << "\n";
+    while (index < act_size / 2) {
+        cout << array[left(index)] << "\n";
+        if (array[right(index)] == 0) {
             break;
         }
-        else {
-            if (temp->left != nullptr && temp->left->value == value) {
-                nodeToRemove = temp->left;
-                break;
-            }
-            else if (temp->right != nullptr && temp->right->value == value) {
-                nodeToRemove = temp->right;
-                break;
-            }
+        cout << array[right(index)] << "\n";
+        index++;
+    }
+}
 
-            if (temp->left != nullptr && value < temp->value)
-                temp = temp->left;
-            else
-                temp = temp->right;
+bool Heap::is_empty() {
+    return act_size == 0;
+}
+
+int Heap::root() {
+    if (is_empty()) return -1;
+
+
+
+}
+
+int Heap::search(int value) {
+    return searchHelper(0, value);  // Start the search from the root (index 0)
+}
+
+int Heap::searchHelper(int index, int value) {
+    if (index >= act_size) {
+        return -1;  // Element not found
+    }
+
+    if (array[index] == value) {
+        return getDepth(index);  // Return the depth of the element if found
+    }
+
+    if (value > array[index]) {
+        int rightChildIndex = right(index);
+        if (rightChildIndex < act_size && array[rightChildIndex] >= value) {
+            return searchHelper(rightChildIndex, value);  // Search in the right subtree
+        }
+    }
+    else {
+        int leftChildIndex = left(index);
+        if (leftChildIndex < act_size && array[leftChildIndex] >= value) {
+            return searchHelper(leftChildIndex, value);  // Search in the left subtree
         }
     }
 
-    if (nodeToRemove == nullptr)
-        return;
+    return -1;  // Element not found
+}
 
-    Node* parentNode = getParentNode(nodeToRemove);
-
-    if (parentNode != nullptr) {
-        if (parentNode->left == nodeToRemove)
-            parentNode->left = nullptr;
-        else
-            parentNode->right = nullptr;
+int Heap::getDepth(int index) {
+    int depth = 0;
+    while (index != 0) {
+        index = parent(index);
+        depth++;
     }
-    else {
-        root = nullptr;
-    }
-
-    if (nodeToRemove != root) {
-        nodeToRemove->left = root->left;
-        nodeToRemove->right = root->right;
-        root->left = nullptr;
-        root->right = nullptr;
-    }
-
-    delete root;
-    root = nodeToRemove;
-    heapifyDown(root);
+    return depth;
 }
 
-
-
-
-
-Heap::Node* Heap::findMin(Node* node) {
-    if (node == nullptr)
-        return nullptr;
-
-    while (node->left != nullptr)
-        node = node->left;
-
-    return node;
-}
-
-
-
-void Heap::inorder() {
-    inorderTraversal(root);
-    cout << endl;
-}
-
-void Heap::preorder() {
-    preorderTraversal(root);
-    cout << endl;
-}
-
-void Heap::postorder() {
-    postorderTraversal(root);
-        cout << endl;
-}
